@@ -1,0 +1,16 @@
+{
+  "name": "weboms",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter weboms-backend dev\" \"pnpm --filter frontend dev\"",
+    "build": "pnpm --filter frontend build",
+    "backend": "pnpm --filter weboms-backend dev",
+    "frontend": "pnpm --filter frontend dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "oracledb", "msw"]
+  }
+}
