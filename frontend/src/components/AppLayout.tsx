@@ -88,20 +88,20 @@ function SidebarMenuGroup({ menu, currentPath, onNavigate }: SidebarMenuGroupPro
   }, [hasActiveChild])
 
   return (
-    <div className="mb-1">
+    <div className="mb-0.5">
       {/* 상위 메뉴 버튼 */}
       <button
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-          'text-slate-300 hover:text-white hover:bg-white/10',
-          hasActiveChild && 'text-white bg-white/10'
+          'w-full flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-medium transition-colors',
+          'text-white/90 hover:text-white hover:bg-white/15',
+          hasActiveChild && 'text-white bg-white/15'
         )}
       >
-        <span className="text-slate-400">{getMenuIcon(menu.menuId)}</span>
+        <span className="text-white/70">{getMenuIcon(menu.menuId)}</span>
         <span className="flex-1 text-left">{menu.title}</span>
         {menu.children.length > 0 && (
-          <span className="text-slate-500">
+          <span className="text-white/50">
             {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
           </span>
         )}
@@ -109,7 +109,7 @@ function SidebarMenuGroup({ menu, currentPath, onNavigate }: SidebarMenuGroupPro
 
       {/* 하위 메뉴 */}
       {open && menu.children.length > 0 && (
-        <div className="mt-0.5 ml-3 pl-3 border-l border-white/10 space-y-0.5">
+        <div className="mt-0 ml-3 pl-3 border-l border-white/25 space-y-0">
           {menu.children.map((child) => {
             const route = resolveRoute(child.pgmId, child.menuId)
             const isActive = route === currentPath
@@ -119,16 +119,16 @@ function SidebarMenuGroup({ menu, currentPath, onNavigate }: SidebarMenuGroupPro
                 key={child.menuId}
                 onClick={() => onNavigate(route, child.title)}
                 className={cn(
-                  'w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left',
+                  'w-full flex items-center gap-1.5 px-3 py-2 text-[13px] transition-colors text-left',
                   isActive
-                    ? 'bg-blue-500 text-white font-medium'
-                    : 'text-slate-400 hover:text-white hover:bg-white/10',
-                  !route && 'opacity-60'
+                    ? 'bg-orange-500 text-white font-medium rounded-sm'
+                    : 'text-white/80 hover:text-white hover:bg-white/15',
+                  !route && 'opacity-50'
                 )}
               >
                 <span className="flex-1 truncate">{child.title}</span>
                 {!route && (
-                  <span className="text-[10px] text-slate-600 bg-slate-700 px-1.5 py-0.5 rounded">준비중</span>
+                  <span className="text-[11px] text-white/60 bg-black/15 px-1.5 py-0.5 rounded-sm">준비중</span>
                 )}
               </button>
             )
@@ -202,32 +202,32 @@ export default function AppLayout() {
   const initials = user?.custNm?.slice(0, 2) ?? 'WB'
 
   return (
-    <div className="h-screen flex bg-slate-100 overflow-hidden">
+    <div className="h-screen flex bg-white overflow-hidden">
       {/* ── 사이드바 ── */}
-      <aside className="w-56 flex-shrink-0 bg-slate-900 flex flex-col">
+      <aside className="w-56 shrink-0 bg-[#1C4D95] flex flex-col">
         {/* 로고 */}
         <div
-          className="h-14 flex items-center gap-3 px-4 cursor-pointer border-b border-white/10 flex-shrink-0"
+          className="h-12 flex items-center gap-2.5 px-4 cursor-pointer border-b border-white/20 shrink-0"
           onClick={() => navigate({ to: '/' })}
         >
-          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          <div className="w-8 h-8 rounded bg-orange-500 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
             OMS
           </div>
           <div>
-            <div className="text-white font-semibold text-sm leading-tight">WEBOMS</div>
-            <div className="text-slate-500 text-[10px] leading-tight">출판물류시스템</div>
+            <div className="text-white font-semibold text-[14px] leading-tight">WEBOMS</div>
+            <div className="text-white/60 text-[11px] leading-tight">출판물류시스템</div>
           </div>
         </div>
 
         {/* 대시보드 링크 */}
-        <div className="px-3 pt-3">
+        <div className="px-2 pt-2">
           <button
             onClick={() => navigate({ to: '/' })}
             className={cn(
-              'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              'w-full flex items-center gap-2.5 px-3 py-2.5 text-[14px] font-medium transition-colors',
               pathname === '/'
-                ? 'bg-blue-500 text-white'
-                : 'text-slate-300 hover:text-white hover:bg-white/10'
+                ? 'bg-orange-500 text-white rounded-sm'
+                : 'text-white/90 hover:text-white hover:bg-white/15'
             )}
           >
             <LayoutDashboard className="w-4 h-4" />
@@ -236,20 +236,20 @@ export default function AppLayout() {
         </div>
 
         {/* 메뉴 구분선 */}
-        <div className="px-4 pt-4 pb-1">
-          <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Menu</span>
+        <div className="px-4 pt-3 pb-1">
+          <span className="text-[11px] font-semibold text-white/50 uppercase tracking-wider">Menu</span>
         </div>
 
         {/* 메뉴 목록 */}
-        <nav className="flex-1 overflow-y-auto px-3 pb-3 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto px-2 pb-2 space-y-0">
           {menusLoading ? (
-            <div className="space-y-2 mt-2">
+            <div className="space-y-1.5 mt-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-9 w-full bg-white/10 rounded-lg" />
+                <Skeleton key={i} className="h-9 w-full bg-white/5 rounded-sm" />
               ))}
             </div>
           ) : menus.length === 0 ? (
-            <p className="text-slate-500 text-xs px-3 py-2">메뉴를 불러올 수 없습니다</p>
+            <p className="text-white/50 text-[13px] px-3 py-2">메뉴를 불러올 수 없습니다</p>
           ) : (
             menus.map((menu) => (
               <SidebarMenuGroup
@@ -263,22 +263,22 @@ export default function AppLayout() {
         </nav>
 
         {/* 사용자 정보 (사이드바 하단) */}
-        <div className="flex-shrink-0 border-t border-white/10 p-3">
+        <div className="shrink-0 border-t border-white/20 p-2.5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-white/10 transition-colors">
-                <Avatar className="h-7 w-7 flex-shrink-0">
-                  <AvatarFallback className="bg-blue-500 text-white text-[10px] font-bold">
+              <button className="w-full flex items-center gap-2.5 px-2 py-2 hover:bg-white/15 transition-colors rounded-sm">
+                <Avatar className="h-7 w-7 shrink-0">
+                  <AvatarFallback className="bg-orange-500 text-white text-[10px] font-bold">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 text-left min-w-0">
-                  <div className="text-white text-xs font-medium truncate">{user?.custNm}</div>
-                  <div className="text-slate-500 text-[10px] truncate">
+                  <div className="text-white text-[13px] font-medium truncate">{user?.custNm}</div>
+                  <div className="text-white/60 text-[11px] truncate">
                     {user?.salesNm ? `${user.salesNm} (영업사원)` : user?.taxNo}
                   </div>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                <ChevronDown className="w-3 h-3 text-white/40 flex-shrink-0" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent side="top" align="start" className="w-48">
@@ -313,14 +313,14 @@ export default function AppLayout() {
       {/* ── 메인 콘텐츠 ── */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* 상단 헤더 */}
-        <header className="h-14 bg-white border-b border-slate-200 flex items-center px-6 gap-4 flex-shrink-0">
+        <header className="h-11 bg-[#2b579a] flex items-center px-5 gap-3 shrink-0">
           <div className="flex-1" />
           {/* 우측: 회사명 + 사용자 */}
-          <div className="flex items-center gap-3 text-sm text-slate-500">
+          <div className="flex items-center gap-3 text-[13px] text-blue-100/90">
             <span>{user?.custNm}</span>
             {user?.salesNm && (
               <>
-                <span className="text-slate-300">|</span>
+                <span className="text-blue-200/30">|</span>
                 <span>{user.salesNm}</span>
               </>
             )}
@@ -329,7 +329,7 @@ export default function AppLayout() {
 
         {/* 탭 바 */}
         {tabs.length > 0 && (
-          <div className="flex items-end gap-0 px-2 pt-1.5 bg-slate-100 border-b border-slate-300 overflow-x-auto flex-shrink-0">
+          <div className="flex items-end gap-0 px-1 pt-1 bg-white border-b border-[#b8c4d4] overflow-x-auto shrink-0">
             {tabs.map((tab) => {
               const isActive = pathname === tab.path
               return (
@@ -337,20 +337,20 @@ export default function AppLayout() {
                   key={tab.path}
                   onClick={() => navigate({ to: tab.path as any })}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 text-xs cursor-pointer whitespace-nowrap rounded-t border border-b-0 select-none transition-colors',
+                    'flex items-center gap-1.5 px-3.5 py-1.5 text-[13px] cursor-pointer whitespace-nowrap border border-b-0 select-none transition-colors',
                     isActive
-                      ? 'bg-white text-blue-600 font-semibold border-slate-300 relative z-10 -mb-px'
-                      : 'bg-slate-200 text-slate-500 border-transparent hover:bg-slate-50 hover:text-slate-700'
+                      ? 'bg-white text-[#2b579a] font-semibold border-[#b8c4d4] rounded-t-sm relative z-10 -mb-px'
+                      : 'bg-[#f0f2f5] text-[#5a6a7e] border-[#d0d8e4] hover:bg-[#e8ecf0] hover:text-[#3a4a5e]'
                   )}
                 >
                   <span>{tab.title}</span>
                   <button
                     onClick={(e) => closeTab(tab.path, e)}
                     className={cn(
-                      'rounded-full p-0.5 transition-colors',
+                      'p-0.5 transition-colors',
                       isActive
-                        ? 'text-slate-400 hover:text-red-500 hover:bg-red-50'
-                        : 'text-slate-400 hover:text-red-500'
+                        ? 'text-[#8a9ab0] hover:text-red-500'
+                        : 'text-[#8a9ab0] hover:text-red-500'
                     )}
                   >
                     <X className="w-3 h-3" />
@@ -362,7 +362,7 @@ export default function AppLayout() {
         )}
 
         {/* 페이지 콘텐츠 - 탭 상태 유지를 위해 display:none으로 숨김 (언마운트 없음) */}
-        <main className="flex-1 overflow-hidden p-4">
+        <main className="flex-1 overflow-hidden p-2">
           {/* 대시보드 */}
           <div className="h-full" style={{ display: pathname === '/' ? undefined : 'none' }}>
             <DashboardPage />

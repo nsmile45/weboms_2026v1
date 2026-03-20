@@ -111,6 +111,12 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     const domeYn = flagRows[0]?.DOME_YN ?? 'N'
     const jgchgYn = flagRows[0]?.JGCHG_YN ?? 'N'
 
+    // MYINFO 조회 (SUBLSEQ_DIV: Y=날짜별순번, N=Oracle시퀀스)
+    const myinfoRow = await queryOne<{ SUBLSEQ_DIV: string }>(
+      `SELECT NVL(SUBLSEQ_DIV,'N') SUBLSEQ_DIV FROM MYINFO`
+    )
+    const sublseqDiv = myinfoRow?.SUBLSEQ_DIV ?? 'N'
+
     const empNo = salesNoResult !== '' ? `S${salesNoResult}` : `P${taxNoResult}`
 
     const token = fastify.jwt.sign({
@@ -124,6 +130,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       jlocCd,
       domeYn,
       jgchgYn,
+      sublseqDiv,
     })
 
     return reply.send({
@@ -139,6 +146,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         jlocCd,
         domeYn,
         jgchgYn,
+        sublseqDiv,
       },
     })
   })

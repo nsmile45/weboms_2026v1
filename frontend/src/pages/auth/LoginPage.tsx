@@ -40,15 +40,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="w-full max-w-md px-4">
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-sm px-4">
         {/* 로고 영역 */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground text-2xl font-bold mb-4">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-[#2b579a] text-white text-xl font-bold mb-3">
             OMS
           </div>
-          <h1 className="text-2xl font-bold text-slate-800">WEBOMS</h1>
-          <p className="text-slate-500 text-sm mt-1">주문관리시스템</p>
+          <h1 className="text-xl font-bold text-[#1e3a5f]">WEBOMS</h1>
+          <p className="text-[#5a6a7e] text-[13px] mt-1">주문관리시스템</p>
         </div>
 
         <Card className="shadow-lg">
@@ -98,7 +98,7 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-slate-400 mt-6">
+        <p className="text-center text-[13px] text-[#8a9ab0] mt-4">
           © 2026 WEBOMS. All rights reserved.
         </p>
       </div>

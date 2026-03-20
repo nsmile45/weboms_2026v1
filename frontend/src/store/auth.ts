@@ -12,6 +12,7 @@ export interface User {
   jlocCd: string
   domeYn: string
   jgchgYn: string
+  sublseqDiv: string
 }
 
 interface AuthState {

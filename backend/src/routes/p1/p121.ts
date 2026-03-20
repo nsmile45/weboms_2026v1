@@ -1,10 +1,12 @@
 import type { FastifyPluginAsync } from 'fastify'
+import oracledb from 'oracledb'
 import { query, queryOne, withTransaction } from '../../db.js'
 
 interface JwtUser {
   taxNo: string
   empNo: string
   salesNo: string
+  sublseqDiv: string
 }
 
 const p121Routes: FastifyPluginAsync = async (fastify) => {
@@ -298,14 +300,24 @@ const p121Routes: FastifyPluginAsync = async (fastify) => {
       let sublSeq = 1
 
       await withTransaction(async (conn: any) => {
-        // SUBL_NO 생성 (MAX+1 방식)
-        const seqRow = await conn.execute<any>(
-          `SELECT NVL(MAX(SUBL_NO),0)+1 SUBL_NO FROM CHULMT
-            WHERE SUBL_DATE = :sublDate AND TAX_NO = :taxNo AND SUBL_NO < 5000`,
-          { sublDate, taxNo: user.taxNo },
-          { outFormat: 3 }
-        )
-        sublNo = (seqRow.rows?.[0] as any)?.SUBL_NO ?? 1
+        // SUBL_NO 생성 (SUBLSEQ_DIV: Y=날짜별 MAX+1, N=Oracle 시퀀스)
+        if (user.sublseqDiv === 'Y') {
+          const seqRow = await conn.execute(
+            `SELECT NVL(MAX(SUBL_NO),0)+1 AS NEW_NO FROM CHULMT
+              WHERE SUBL_DATE = :sublDate AND TAX_NO = :taxNo AND SUBL_NO < 5000`,
+            { sublDate, taxNo: user.taxNo },
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+          )
+          sublNo = (seqRow.rows?.[0] as any)?.NEW_NO ?? 1
+        } else {
+          const seqRow = await conn.execute(
+            `SELECT CHULMT_NUM.NEXTVAL AS NEW_NO FROM DUAL`,
+            {},
+            { outFormat: oracledb.OUT_FORMAT_OBJECT }
+          )
+          sublNo = (seqRow.rows?.[0] as any)?.NEW_NO ?? 0
+        }
+        if (sublNo === 0) throw new Error('전표번호 생성 중 오류')
 
         const zipDiv = zipNo ? '1' : ''
         const finalBesongName = besongName || mecustNm

@@ -1,10 +1,15 @@
 export interface JwtPayload {
-  userId: string
-  empNo: string
-  empNm: string
-  custCd: string
+  taxNo: string
   custNm: string
-  authLevel: string
+  salesNo: string
+  salesNm: string
+  empNo: string
+  plocCd: string
+  rlocCd: string
+  jlocCd: string
+  domeYn: string
+  jgchgYn: string
+  sublseqDiv: string
 }
 
 declare module '@fastify/jwt' {
