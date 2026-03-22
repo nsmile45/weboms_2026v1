@@ -631,6 +631,152 @@ const p121Routes: FastifyPluginAsync = async (fastify) => {
       return { ok: true, orderDeleted: lineCount <= 1 }
     }
   )
+  // ──────────────────────────────────────────────────────────
+  // GET /orders-sub — P121Sub 전표 목록 (추가 필드 포함)
+  // ──────────────────────────────────────────────────────────
+  fastify.get<{
+    Querystring: {
+      d1?: string; d2?: string; metaxNo?: string
+      sublGb?: string; besongGb?: string; sendYn?: string
+    }
+  }>('/orders-sub', { preHandler: [fastify.authenticate] }, async (request) => {
+    const user = request.user as JwtUser
+    const { d1, d2, metaxNo = '', sublGb = '', besongGb = '', sendYn = '' } = request.query
+
+    const today = new Date()
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const todayStr = `${today.getFullYear()}${pad(today.getMonth() + 1)}${pad(today.getDate())}`
+    const date1 = d1 ?? todayStr
+    const date2 = d2 ?? todayStr
+
+    let sql = `
+      SELECT SUBL_DATE, SUBL_NO, TAX_NO,
+             NVL(SUBL_GB,'') SUBL_GB, NVL(ME_GB,'') ME_GB, NVL(BESONG_GB,'') BESONG_GB,
+             METAX_NO, F_CUSTME(METAX_NO) MECUST_NM, NVL(AREA_GB,'') AREA_GB,
+             NVL(OD_QTY,0) OD_QTY, NVL(OD_AMT,0) OD_AMT,
+             NVL(JU_QTY,0) JU_QTY, NVL(JU_AMT,0) JU_AMT,
+             NVL(B_QTY,0) B_QTY, NVL(B_AMT,0) B_AMT,
+             DECODE(NVL(DEL_YN,'N'),'Y','9', NVL(CHK_GB,'')) CHK_GB,
+             NVL(JG_GB,'') JG_GB, F_GNCODE('jg_gb', NVL(JG_GB,'')) JG_GBNM,
+             DECODE(NVL(A.REORDER_NUM,'!'),'!','N','Y') REORDER_YN,
+             SUBSTRB(NVL(UPD_DATE,''),9,2)||':'||SUBSTRB(NVL(UPD_DATE,''),11,2) UPD_TIME,
+             ORDER_NO, F_GNCODE('ins_gb', NVL(A.INS_GB,'')) INS_NM,
+             NVL(PM_REMK,'') PM_REMK, NVL(MECUST_NM2,'') MECUST_NM2, NVL(PM_REMK2,'') PM_REMK2,
+             NVL(ADDR1,'')||NVL(ADDR2,'') ADDR, NVL(TEL_NO,'') TEL_NO
+        FROM CHULMT A
+       WHERE SUBL_DATE BETWEEN :d1 AND :d2
+         AND TAX_NO = :taxNo
+         AND JG_GB != '00'
+         AND NVL(DEL_YN,'N') != 'Y'`
+
+    const binds: Record<string, unknown> = { d1: date1, d2: date2, taxNo: user.taxNo }
+
+    if (metaxNo)  { sql += ` AND METAX_NO = :metaxNo`;  binds.metaxNo = metaxNo }
+    if (sublGb)   { sql += ` AND SUBL_GB = :sublGb`;    binds.sublGb = sublGb }
+    if (besongGb) { sql += ` AND BESONG_GB = :besongGb`; binds.besongGb = besongGb }
+    if (sendYn === 'Y') { sql += ` AND CHK_GB IS NOT NULL` }
+    else if (sendYn === 'N') { sql += ` AND CHK_GB IS NULL AND NVL(DEL_YN,'N') != 'Y'` }
+
+    sql += ` ORDER BY ORDER_NO DESC`
+    return await query(sql, binds)
+  })
+
+  // ──────────────────────────────────────────────────────────
+  // GET /orders-sub/:sublDate/:sublNo/lines — 도서 상세 (P121Sub 하단 그리드)
+  // ──────────────────────────────────────────────────────────
+  fastify.get<{ Params: { sublDate: string; sublNo: string } }>(
+    '/orders-sub/:sublDate/:sublNo/lines',
+    { preHandler: [fastify.authenticate] },
+    async (request) => {
+      const user = request.user as JwtUser
+      const { sublDate, sublNo } = request.params
+      return await query(
+        `SELECT A.SUBL_SEQ, A.BK_CD, B.SUBJECT BK_NM, NVL(B.BAR_CD,'') BAR_CD,
+                NVL(A.OUT_DANGA,0) OUT_DANGA, NVL(A.OD_QTY,0) OD_QTY,
+                NVL(A.OUT_RATE,0) OUT_RATE, NVL(A.OD_AMT,0) OD_AMT,
+                NVL(A.PUB_REMK,'') PUB_REMK
+           FROM BJUMUN A, BOOKCD B
+          WHERE A.BK_CD = B.BK_CD AND A.TAX_NO = B.TAX_NO
+            AND A.SUBL_DATE = :sublDate AND A.TAX_NO = :taxNo AND A.SUBL_NO = :sublNo
+          ORDER BY A.SUBL_SEQ`,
+        { sublDate, taxNo: user.taxNo, sublNo }
+      )
+    }
+  )
+
+  // ──────────────────────────────────────────────────────────
+  // POST /orders/:sublDate/:sublNo/send — 개별 전송
+  // ──────────────────────────────────────────────────────────
+  fastify.post<{ Params: { sublDate: string; sublNo: string } }>(
+    '/orders/:sublDate/:sublNo/send',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const user = request.user as JwtUser
+      const { sublDate, sublNo } = request.params
+
+      const row = await queryOne<{ CHK_GB: string }>(
+        `SELECT NVL(CHK_GB,'') CHK_GB FROM CHULMT
+          WHERE SUBL_DATE = :sublDate AND SUBL_NO = :sublNo AND TAX_NO = :taxNo`,
+        { sublDate, sublNo, taxNo: user.taxNo }
+      )
+      if (!row) return reply.status(404).send({ message: '전표를 찾을 수 없습니다.' })
+      if (row.CHK_GB !== '') {
+        return reply.status(400).send({ message: '이미 전송된 전표입니다.' })
+      }
+
+      await withTransaction(async (conn: any) => {
+        await conn.execute(
+          `UPDATE CHULMT
+              SET CHK_GB = '0',
+                  TRANS_DATE = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+                  UPD_EMP = :empNo,
+                  UPD_DATE = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+                  UPD_IP = 'W'
+            WHERE SUBL_DATE = :sublDate AND SUBL_NO = :sublNo AND TAX_NO = :taxNo
+              AND DEL_YN IS NULL AND CHK_GB IS NULL`,
+          { sublDate, sublNo, taxNo: user.taxNo, empNo: user.empNo }
+        )
+      })
+
+      return { ok: true }
+    }
+  )
+
+  // ──────────────────────────────────────────────────────────
+  // POST /orders/send-all — 일괄 전송
+  // ──────────────────────────────────────────────────────────
+  fastify.post<{ Body: { orders: Array<{ sublDate: string; sublNo: string }> } }>(
+    '/orders/send-all',
+    { preHandler: [fastify.authenticate] },
+    async (request, reply) => {
+      const user = request.user as JwtUser
+      const { orders } = request.body
+
+      if (!orders || orders.length === 0) {
+        return reply.status(400).send({ message: '전송할 주문을 선택해주세요.' })
+      }
+
+      let cnt = 0
+      await withTransaction(async (conn: any) => {
+        for (const o of orders) {
+          await conn.execute(
+            `UPDATE CHULMT
+                SET CHK_GB = '0',
+                    TRANS_DATE = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+                    UPD_EMP = :empNo,
+                    UPD_DATE = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+                    UPD_IP = 'W'
+              WHERE SUBL_DATE = :sublDate AND SUBL_NO = :sublNo AND TAX_NO = :taxNo
+                AND DEL_YN IS NULL AND CHK_GB IS NULL`,
+            { sublDate: o.sublDate, sublNo: o.sublNo, taxNo: user.taxNo, empNo: user.empNo }
+          )
+          cnt++
+        }
+      })
+
+      return { ok: true, count: cnt }
+    }
+  )
 }
 
 export default p121Routes

@@ -108,12 +108,41 @@
 | 로그인 | `auth/LoginPage.tsx` | [x] |
 | 대시보드 | `dashboard/DashboardPage.tsx` | [x] |
 | 도서 마스터 | `p0/BookMasterPage.tsx` | [x] |
-| P121 도서 주문 | `p1/P121Page.tsx` | [~] |
+| P121 도서 주문 | `p1/P121Page.tsx` | [x] |
+| P121 주문전표조회 모달 | `p1/P121SubModal.tsx` | [x] |
+
+---
+
+### 2026-03-22 — P121 주문전표조회 모달 (P121_Sub) 구현
+
+#### 백엔드 (`backend/src/routes/p1/p121.ts`)
+- [x] `GET /orders-sub` — 주문전표 목록 조회 (CHULMT, F_CUSTME, F_GNCODE 포함)
+  - 필드: SUBL_DATE, SUBL_NO, CHK_GB, SUBL_GB, JG_GB, JG_GBNM, ME_GB, BESONG_GB, METAX_NO, MECUST_NM, OD_QTY, OD_AMT, JU_QTY, JU_AMT, UPD_TIME, INS_NM, REORDER_YN, ORDER_NO, ADDR, TEL_NO, MECUST_NM2, PM_REMK2, PM_REMK
+  - 파라미터: d1, d2, metaxNo, sublGb, besongGb, sendYn (Y/N/전체)
+- [x] `GET /orders-sub/:sublDate/:sublNo/lines` — 도서 상세 라인 (BJUMUN)
+- [x] `POST /orders/:sublDate/:sublNo/send` — 개별 전송 (CHK_GB → '0')
+- [x] `POST /orders/send-all` — 일괄 전송 (배열로 복수 전표 처리)
+- [x] `backend/src/types/index.ts` — FastifyInstance.authenticate 타입 선언 추가
+
+#### 프론트엔드 (`frontend/src/pages/p1/P121SubModal.tsx`)
+- [x] 팝업 사이즈: 86vw × 84vh
+- [x] 상단 그리드 24컬럼 (체크박스, 순번, 개별전송, 날짜, 원주문번호, 상태, 수불구분, 창고, 매출구분, 배송구분, 코드, 서점명, 주문수, 주문금액, 출고수, 출고금액, 진행시간, 주문형태, 물류전표, 주소, 전화번호, 받는사람, 택배비고, 명세서비고)
+- [x] 하단 그리드 9컬럼 — 도서 상세 (도서코드, 도서명, ISBN, 정가, 등록부수, %, 등록금액, 도서비고)
+- [x] CHK_GB 상태별 뱃지 색상 (미전송=하늘, 전송=초록, 삭제=빨강, 기타)
+- [x] 행 전체 배경색 제거 → 상태 뱃지만 색상 표기
+- [x] 컬럼 리사이저 (drag-to-resize) — 상단/하단 그리드 모두 적용
+- [x] 서점명 컬럼 240px (기존 80px의 3배)
+- [x] colgroup + table-layout:fixed 방식으로 정확한 너비 제어
+- [x] 개별전송(↩) 버튼 — CHK_GB='' 일 때만 활성화
+- [x] 일괄전송 — 체크박스로 선택한 미전송 건만 처리
+- [x] 더블클릭 행 → P121Page로 해당 전표 로드 (onSelect 콜백)
+- [x] 결품도서 재주문 표시 (REORDER_YN='Y')
+- [x] 엑셀 CSV 다운로드
+- [x] 도서마스터 기준 스타일 통일 (text-[13px], h-8, bg-[#E7EBF5] 헤더, px-1.5 py-1.5 TH, px-2 py-1.5 TD)
 
 ---
 
 ## 앞으로 할 일
 
-- [ ] P121 프론트 완성 및 테스트
 - [ ] 추가 메뉴/페이지 개발 (p2, p3 등)
 - [ ] 환경별 배포 설정 (dev / prod)

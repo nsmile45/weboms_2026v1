@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { api } from '@/lib/api'
+import P121SubModal from './P121SubModal'
 
 // ─── 타입 ───────────────────────────────────────────────────────────────
 interface CodeItem { VALUE: string; NAME: string }
@@ -182,95 +183,6 @@ function CustSearchModal({ initialKeyword, onSelect, onClose }: CustSearchModalP
   )
 }
 
-// ─── 전표조회 모달 ────────────────────────────────────────────────────────
-interface SearchModalProps {
-  codes: Codes
-  onSelect: (o: OrderRow) => void
-  onClose: () => void
-}
-function SearchModal({ codes, onSelect, onClose }: SearchModalProps) {
-  const [d1, setD1] = useState(todayStr())
-  const [d2, setD2] = useState(todayStr())
-  const [custNm, setCustNm] = useState('')
-  const [sublGb, setSublGb] = useState('')
-  const [orders, setOrders] = useState<OrderRow[]>([])
-  const [loading, setLoading] = useState(false)
-
-  useEffect(() => { search() }, [])
-
-  async function search() {
-    setLoading(true)
-    try {
-      const res = await api.get('/p1/p121/orders', {
-        params: { d1: d1.replace(/-/g,''), d2: d2.replace(/-/g,''), metaxNo: '', sublGb }
-      })
-      let list: OrderRow[] = res.data
-      if (custNm) list = list.filter(o => o.MECUST_NM.includes(custNm) || o.METAX_NO.includes(custNm))
-      setOrders(list)
-    } finally { setLoading(false) }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded shadow-2xl w-[800px] max-h-[85vh] flex flex-col">
-        {/* 헤더 */}
-        <div className="flex items-center justify-between px-3 py-1.5 bg-[#2b579a] text-white rounded-t-sm">
-          <span className="text-[13px] font-medium">전표 조회</span>
-          <button onClick={onClose} className="text-blue-200/70 hover:text-white text-sm leading-none">✕</button>
-        </div>
-        {/* 검색 조건 */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-[#f4f6f8] border-b border-[#dde4ed] flex-wrap">
-          <input type="date" value={d1} onChange={e=>setD1(e.target.value)} className="h-8 px-1.5 text-[13px] border border-[#b8c4d4] rounded-sm w-32" />
-          <span className="text-[#8a9ab0] text-[13px]">~</span>
-          <input type="date" value={d2} onChange={e=>setD2(e.target.value)} className="h-8 px-1.5 text-[13px] border border-[#b8c4d4] rounded-sm w-32" />
-          <input value={custNm} onChange={e=>setCustNm(e.target.value)}
-            onKeyDown={e=>{ if(e.key==='Enter') search() }}
-            placeholder="서점명" className="h-8 px-1.5 text-[13px] border border-[#b8c4d4] rounded-sm w-28" />
-          <select value={sublGb} onChange={e=>setSublGb(e.target.value)} className="h-8 px-1 text-[13px] border border-[#b8c4d4] rounded-sm w-28">
-            <option value="">주문구분(전체)</option>
-            {codes.sublGb.map(c=><option key={c.VALUE} value={c.VALUE}>{c.NAME}</option>)}
-          </select>
-          <button onClick={search} className="h-8 px-3 text-[13px] bg-[#2b579a] text-white rounded-sm hover:bg-[#1e3a5f]">조회</button>
-        </div>
-        {/* 목록 */}
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-[13px] border-collapse">
-            <thead className="sticky top-0">
-              <tr className="bg-[#E7EBF5] text-black">
-                {['일자','전표번호','서점','주문구분','부수','금액','상태','비고'].map(h=>(
-                  <th key={h} className="px-1.5 py-1 text-left border-r border-[#c8d0e0] last:border-r-0 font-medium">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan={8} className="text-center py-6 text-slate-400">조회 중...</td></tr>
-              ) : orders.length === 0 ? (
-                <tr><td colSpan={8} className="text-center py-6 text-slate-400">데이터 없음</td></tr>
-              ) : orders.map((o,i)=>(
-                <tr key={`${o.SUBL_DATE}-${o.SUBL_NO}`}
-                  className={`border-b border-[#dde4ed] hover:bg-[#e8f0fe] cursor-pointer ${i%2===0 ? 'bg-white' : 'bg-[#f6f8fb]'}`}
-                  onDoubleClick={()=>onSelect(o)}
-                  onClick={()=>onSelect(o)}>
-                  <td className="px-2 py-1">{o.SUBL_DATE.slice(0,4)}-{o.SUBL_DATE.slice(4,6)}-{o.SUBL_DATE.slice(6,8)}</td>
-                  <td className="px-2 py-1">{o.SUBL_NO}</td>
-                  <td className="px-2 py-1 font-medium">{o.MECUST_NM}</td>
-                  <td className="px-2 py-1">{codes.sublGb.find(c=>c.VALUE===o.SUBL_GB)?.NAME ?? o.SUBL_GB}</td>
-                  <td className="px-2 py-1 text-right">{o.OD_QTY}</td>
-                  <td className="px-2 py-1 text-right">{o.OD_AMT.toLocaleString()}</td>
-                  <td className="px-2 py-1">
-                    <span className={`text-[12px] px-1 py-0.5 rounded ${chkColor(o.CHK_GB)}`}>{chkLabel(o.CHK_GB,codes)}</span>
-                  </td>
-                  <td className="px-2 py-1 text-slate-400">{o.PM_REMK}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 // ─── 메인 ─────────────────────────────────────────────────────────────────
 export default function P121Page() {
@@ -455,10 +367,10 @@ export default function P121Page() {
     } finally { setLoading(false) }
   }
 
-  // ── 전표 선택 (모달) ──────────────────────────────────────────────
-  async function onSelectOrder(o: OrderRow) {
+  // ── 전표 선택 (P121SubModal) ───────────────────────────────────────
+  async function onSelectFromSub(sublDate: string, sublNo: string) {
     setShowSearchModal(false)
-    await loadDetail(o.SUBL_DATE, o.SUBL_NO)
+    await loadDetail(sublDate, sublNo)
   }
 
   // ── 도서 라인 저장 (신규) ─────────────────────────────────────────
@@ -922,9 +834,9 @@ export default function P121Page() {
         </div>
       </div>
 
-      {/* ── 전표조회 모달 ─────────────────────────────────────────── */}
+      {/* ── 주문전표조회 및 전송 모달 (P121_Sub) ─────────────────── */}
       {showSearchModal && (
-        <SearchModal codes={codes} onSelect={onSelectOrder} onClose={()=>setShowSearchModal(false)} />
+        <P121SubModal codes={codes} onSelect={onSelectFromSub} onClose={()=>setShowSearchModal(false)} />
       )}
       {showCustModal && (
         <CustSearchModal
