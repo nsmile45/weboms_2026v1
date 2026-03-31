@@ -567,7 +567,7 @@ export default function P121Page() {
               <input value={master.MISU_AMT.toLocaleString()} readOnly className={inpD} />
 
               <L>배송구분</L>
-              <div className="flex gap-1 items-center">
+              <div className="col-span-3 flex gap-1 items-center">
                 <select value={master.BESONG_GB} disabled={!canEdit} onChange={e=>setMaster(p=>({...p,BESONG_GB:e.target.value}))} className={`${canEdit ? sel : selD} flex-1`}>
                   <option value="">선택안함</option>
                   {codes.besongGb.map(c=><option key={c.VALUE} value={c.VALUE}>{c.NAME}</option>)}
@@ -576,12 +576,12 @@ export default function P121Page() {
                   <input type="checkbox" checked={master.EX_GB2==='Y'} disabled={!canEdit}
                     onChange={e=>setMaster(p=>({...p,EX_GB2:e.target.checked?'Y':'N'}))} className="w-3 h-3" />착불
                 </label>
+                <L>배송업체</L>
+                <select value={master.BESONG_CD} disabled={!canEdit} onChange={e=>setMaster(p=>({...p,BESONG_CD:e.target.value}))} className={`${canEdit ? sel : selD} flex-1`}>
+                  <option value="">선택안함</option>
+                  {codes.besongCd.map(c=><option key={c.VALUE} value={c.VALUE}>{c.NAME}</option>)}
+                </select>
               </div>
-              <L>배송업체</L>
-              <select value={master.BESONG_CD} disabled={!canEdit} onChange={e=>setMaster(p=>({...p,BESONG_CD:e.target.value}))} className={`col-span-3 ${canEdit ? sel : selD}`}>
-                <option value="">선택안함</option>
-                {codes.besongCd.map(c=><option key={c.VALUE} value={c.VALUE}>{c.NAME}</option>)}
-              </select>
 
               <L>서점비고</L>
               <input value={master.CUST_PM_REMK} readOnly className={`col-span-3 ${inpD}`} />
