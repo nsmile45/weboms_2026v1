@@ -996,7 +996,9 @@ export default function BookMasterPage() {
           <div className="space-y-0.5">
             <Label className="text-[13px] text-[#5a6a7e]">출판사</Label>
             <Select value={sPubCd} onValueChange={v => setSPubCd(v ?? '')}>
-              <SelectTrigger className="h-8 text-[13px] w-36"><SelectValue placeholder="전체" /></SelectTrigger>
+              <SelectTrigger className="h-8 text-[13px] w-36">
+                <SelectValue>{custchList.find(c => c.PUB_CD === sPubCd)?.PUB_NM || '전체'}</SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">전체</SelectItem>
                 {custchList.map(c => <SelectItem key={c.PUB_CD} value={c.PUB_CD}>{c.PUB_NM}</SelectItem>)}
@@ -1014,7 +1016,9 @@ export default function BookMasterPage() {
           <div className="space-y-0.5">
             <Label className="text-[13px] text-[#5a6a7e]">상태</Label>
             <Select value={sOutGb} onValueChange={v => setSOutGb(v ?? '')}>
-              <SelectTrigger className="h-8 text-[13px] w-24"><SelectValue placeholder="전체" /></SelectTrigger>
+              <SelectTrigger className="h-8 text-[13px] w-24">
+                <SelectValue>{OUT_GB_OPTIONS.find(o => o.value === sOutGb)?.label || '전체'}</SelectValue>
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="">전체</SelectItem>
                 {OUT_GB_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}

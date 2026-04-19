@@ -4,6 +4,7 @@ import LoginPage from '@/pages/auth/LoginPage'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import BookMasterPage from '@/pages/p0/BookMasterPage'
 import P121Page from '@/pages/p1/P121Page'
+import P115Page from '@/pages/p1/P115Page'
 import { useAuthStore } from '@/store/auth'
 
 function isAuthenticated() {
@@ -54,12 +55,20 @@ const p121Route = createRoute({
   component: P121Page,
 })
 
+// P1 - KOBIC주문받기
+const p115Route = createRoute({
+  getParentRoute: () => authLayout,
+  path: '/p1/p115',
+  component: P115Page,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   authLayout.addChildren([
     dashboardRoute,
     bookMasterRoute,
     p121Route,
+    p115Route,
   ]),
 ])
 

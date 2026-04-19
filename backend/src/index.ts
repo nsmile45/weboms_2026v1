@@ -3,11 +3,13 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import { initDb, closeDb } from './db.js'
+import { initKobicDb, closeKobicDb } from './db-kobic.js'
 import authPlugin from './plugins/auth.js'
 import authRoutes from './routes/auth/index.js'
 import menuRoutes from './routes/menu/index.js'
 import bookcdRoutes from './routes/p0/bookcd.js'
 import p121Routes from './routes/p1/p121.js'
+import p115Routes from './routes/p1/p115.js'
 
 const fastify = Fastify({ logger: true })
 
@@ -28,6 +30,7 @@ await fastify.register(authRoutes, { prefix: '/api/auth' })
 await fastify.register(menuRoutes, { prefix: '/api/menu' })
 await fastify.register(bookcdRoutes, { prefix: '/api/p0/bookcd' })
 await fastify.register(p121Routes, { prefix: '/api/p1/p121' })
+await fastify.register(p115Routes, { prefix: '/api/p1/p115' })
 
 // Health check
 fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
@@ -37,6 +40,7 @@ const PORT = Number(process.env.PORT ?? 3000)
 
 try {
   await initDb()
+  await initKobicDb()
   await fastify.listen({ port: PORT, host: '0.0.0.0' })
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 } catch (err) {
@@ -46,6 +50,7 @@ try {
 
 process.on('SIGINT', async () => {
   await closeDb()
+  await closeKobicDb()
   await fastify.close()
   process.exit(0)
 })

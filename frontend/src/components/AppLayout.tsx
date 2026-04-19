@@ -3,6 +3,7 @@ import { useNavigate, useRouterState } from '@tanstack/react-router'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
 import BookMasterPage from '@/pages/p0/BookMasterPage'
 import P121Page from '@/pages/p1/P121Page'
+import P115Page from '@/pages/p1/P115Page'
 import { useQuery } from '@tanstack/react-query'
 import { useAuthStore } from '@/store/auth'
 import { fetchMenus, type TopMenuItem } from '@/lib/menu'
@@ -41,6 +42,7 @@ import { cn } from '@/lib/utils'
 const PGM_ROUTE_MAP: Record<string, string> = {
   P011: '/p0/bookcd', // 도서마스터
   P121: '/p1/p121',  // 주문입력
+  P115: '/p1/p115',  // KOBIC주문받기
 }
 
 // MENU_ID → 라우트 매핑 (PGM_ID 모를 때 MENU_ID 사용)
@@ -148,6 +150,7 @@ interface TabItem {
 const ROUTE_COMPONENT_MAP: Record<string, React.ComponentType> = {
   '/p0/bookcd': BookMasterPage,
   '/p1/p121': P121Page,
+  '/p1/p115': P115Page,
 }
 
 export default function AppLayout() {
